@@ -116,6 +116,17 @@ function changeVal(id, delta) {
   updatePreview();
 }
 
+function bindCounterButtons() {
+  document.querySelectorAll('.counter-btn').forEach(btn => {
+    btn.addEventListener('touchstart', function(e) {
+      e.preventDefault();
+      const id    = this.dataset.target;
+      const delta = parseInt(this.dataset.delta);
+      changeVal(id, delta);
+    }, { passive: false });
+  });
+}
+
 function openModal(pl, name) {
   editingKey = pl + '_' + name;
   const d = state[editingKey] || { wins: 0, draws: 0, phase: 0 };
@@ -171,4 +182,5 @@ document.getElementById('modal').addEventListener('click', function(e) {
 });
 
 // ─── INIT ────────────────────────────────────────────────
+bindCounterButtons();
 loadState();

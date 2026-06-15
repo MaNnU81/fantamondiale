@@ -45,17 +45,17 @@
       <div class="score-field">
         <label>Vittorie</label>
         <div class="counter">
-          <button class="counter-btn" onclick="changeVal('inp-wins', -1)">−</button>
+          <button class="counter-btn" data-target="inp-wins" data-delta="-1" onclick="changeVal('inp-wins', -1)">−</button>
           <input type="number" id="inp-wins" min="0" value="0" readonly>
-          <button class="counter-btn" onclick="changeVal('inp-wins', 1)">+</button>
+          <button class="counter-btn" data-target="inp-wins" data-delta="1" onclick="changeVal('inp-wins', 1)">+</button>
         </div>
       </div>
       <div class="score-field">
         <label>Pareggi</label>
         <div class="counter">
-          <button class="counter-btn" onclick="changeVal('inp-draws', -1)">−</button>
+          <button class="counter-btn" data-target="inp-draws" data-delta="-1" onclick="changeVal('inp-draws', -1)">−</button>
           <input type="number" id="inp-draws" min="0" value="0" readonly>
-          <button class="counter-btn" onclick="changeVal('inp-draws', 1)">+</button>
+          <button class="counter-btn" data-target="inp-draws" data-delta="1" onclick="changeVal('inp-draws', 1)">+</button>
         </div>
       </div>
     </div>
