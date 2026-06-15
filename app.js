@@ -214,96 +214,62 @@ const PLAYER_TEAMS = {
   mannu:  ['Spagna','Francia','Argentina','Germania','Croazia','Marocco','Ecuador','Giappone']
 };
 
+// mappa nome API → { flag, tla }
+const TEAM_META = {
+  'Brazil':            { flag: '🇧🇷', tla: 'BRA' },
+  'Portugal':          { flag: '🇵🇹', tla: 'POR' },
+  'Norway':            { flag: '🇳🇴', tla: 'NOR' },
+  'England':           { flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', tla: 'ENG' },
+  'Netherlands':       { flag: '🇳🇱', tla: 'NED' },
+  'South Korea':       { flag: '🇰🇷', tla: 'KOR' },
+  'Korea Republic':    { flag: '🇰🇷', tla: 'KOR' },
+  'Türkiye':           { flag: '🇹🇷', tla: 'TUR' },
+  'Turkey':            { flag: '🇹🇷', tla: 'TUR' },
+  'Belgium':           { flag: '🇧🇪', tla: 'BEL' },
+  'Spain':             { flag: '🇪🇸', tla: 'ESP' },
+  'France':            { flag: '🇫🇷', tla: 'FRA' },
+  'Argentina':         { flag: '🇦🇷', tla: 'ARG' },
+  'Germany':           { flag: '🇩🇪', tla: 'GER' },
+  'Croatia':           { flag: '🇭🇷', tla: 'CRO' },
+  'Morocco':           { flag: '🇲🇦', tla: 'MAR' },
+  'Ecuador':           { flag: '🇪🇨', tla: 'ECU' },
+  'Japan':             { flag: '🇯🇵', tla: 'JPN' },
+  'Mexico':            { flag: '🇲🇽', tla: 'MEX' },
+  'USA':               { flag: '🇺🇸', tla: 'USA' },
+  'United States':     { flag: '🇺🇸', tla: 'USA' },
+  'Canada':            { flag: '🇨🇦', tla: 'CAN' },
+  'Saudi Arabia':      { flag: '🇸🇦', tla: 'KSA' },
+  'Cape Verde Islands':{ flag: '🇨🇻', tla: 'CPV' },
+  'South Africa':      { flag: '🇿🇦', tla: 'RSA' },
+  'Czechia':           { flag: '🇨🇿', tla: 'CZE' },
+  'Bosnia-Herzegovina':{ flag: '🇧🇦', tla: 'BIH' },
+  'Australia':         { flag: '🇦🇺', tla: 'AUS' },
+  'Uruguay':           { flag: '🇺🇾', tla: 'URU' },
+  'Colombia':          { flag: '🇨🇴', tla: 'COL' },
+  'Serbia':            { flag: '🇷🇸', tla: 'SRB' },
+  'Switzerland':       { flag: '🇨🇭', tla: 'SUI' },
+  'Senegal':           { flag: '🇸🇳', tla: 'SEN' },
+  'Nigeria':           { flag: '🇳🇬', tla: 'NGA' },
+  'Cameroon':          { flag: '🇨🇲', tla: 'CMR' },
+  'Ghana':             { flag: '🇬🇭', tla: 'GHA' },
+  'Denmark':           { flag: '🇩🇰', tla: 'DEN' },
+  'Poland':            { flag: '🇵🇱', tla: 'POL' },
+  'Iran':              { flag: '🇮🇷', tla: 'IRN' },
+  'Qatar':             { flag: '🇶🇦', tla: 'QAT' },
+};
+
+function teamMeta(apiName) {
+  return TEAM_META[apiName] || { flag: '🏳️', tla: apiName ? apiName.slice(0,3).toUpperCase() : '???' };
+}
+
 function formatMatchDate(utcDate) {
   const d = new Date(utcDate);
   return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })
     + ' · ' + d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
 }
 
-function shortName(fullName) {
-  const overrides = {
-    'Cape Verde Islands': 'Capo Verde',
-    'Korea Republic': 'Corea Sud',
-    'South Korea': 'Corea Sud',
-    'Saudi Arabia': 'Arabia S.',
-    'United States': 'USA',
-    'Bosnia-Herzegovina': 'Bosnia',
-    'Czechia': 'Rep. Ceca',
-    'Netherlands': 'Paesi Bassi',
-    'Türkiye': 'Turchia',
-  };
-  return overrides[fullName] || fullName;
-}
-
-function renderMatches(player, data) {
-  const container = document.getElementById(player + '-matches');
-  if (!data || data.error) {
-    container.innerHTML = '<div class="match-empty">Dati non disponibili</div>';
-    return;
-  }
-
-  const teams  = PLAYER_TEAMS[player];
-  const isMyTeam = name => teams.some(t => matchesTeamFE(t, name));
-
-  // tutte le partite del giocatore (live + future) ordinate cronologicamente
-  const allMine = [
-    ...data.live.filter(m => isMyTeam(m.homeTeam.name) || isMyTeam(m.awayTeam.name)),
-    ...data.next.filter(m => teams.includes(m.fantaTeam))
-  ].sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate));
-
-  // max 3 slot
-  const slots = allMine.slice(0, 3);
-
-  if (!slots.length) {
-    container.innerHTML = '<div class="match-empty">Nessuna partita in programma</div>';
-    container.className = '';
-    return;
-  }
-
-  const html = slots.map(m => {
-    const isLive = ['IN_PLAY', 'PAUSED', 'LIVE', 'HALFTIME'].includes(m.status);
-    const home   = shortName(m.homeTeam.name);
-    const away   = shortName(m.awayTeam.name);
-    const myHome = isMyTeam(m.homeTeam.name);
-    const myAway = isMyTeam(m.awayTeam.name);
-
-    if (isLive) {
-      const hs     = m.score.fullTime.home ?? m.score.halfTime.home ?? 0;
-      const as     = m.score.fullTime.away ?? m.score.halfTime.away ?? 0;
-      const isPause = m.status === 'HALFTIME' || m.status === 'PAUSED';
-      const minute  = isPause ? 'INT' : (m.minute ? m.minute + '′' : 'LIVE');
-      return `
-        <div class="match-card live">
-          <div class="match-card-inner">
-            <span class="mc-team ${myHome ? 'my-team' : ''}">${home}</span>
-            <div class="mc-center">
-              <div class="mc-score">${hs} – ${as}</div>
-              <div class="mc-time live-pulse">${minute}</div>
-            </div>
-            <span class="mc-team right ${myAway ? 'my-team' : ''}">${away}</span>
-          </div>
-        </div>`;
-    } else {
-      return `
-        <div class="match-card">
-          <div class="match-card-inner">
-            <span class="mc-team ${myHome ? 'my-team' : ''}">${home}</span>
-            <div class="mc-center">
-              <div class="mc-vs">VS</div>
-              <div class="mc-time">${formatMatchDate(m.utcDate)}</div>
-            </div>
-            <span class="mc-team right ${myAway ? 'my-team' : ''}">${away}</span>
-          </div>
-        </div>`;
-    }
-  }).join('');
-
-  container.innerHTML = html;
-  container.className = '';
-}
-
-// mapping nomi fanta → nomi API (lato frontend per filtrare)
 function matchesTeamFE(fantaName, apiName) {
+  if (!apiName) return false;
   const map = {
     'Brasile':       ['Brazil'],
     'Portogallo':    ['Portugal'],
@@ -324,6 +290,89 @@ function matchesTeamFE(fantaName, apiName) {
   };
   const aliases = map[fantaName] || [];
   return aliases.some(a => apiName.toLowerCase().includes(a.toLowerCase()));
+}
+
+function isLiveStatus(status) {
+  return ['IN_PLAY', 'PAUSED', 'LIVE', 'HALFTIME'].includes(status);
+}
+
+function renderMatches(player, data) {
+  const container = document.getElementById(player + '-matches');
+  if (!data || data.error) {
+    container.className = '';
+    container.innerHTML = '<div class="match-empty">Dati non disponibili</div>';
+    return;
+  }
+
+  const teams    = PLAYER_TEAMS[player];
+  const isMyTeam = name => teams.some(t => matchesTeamFE(t, name));
+
+  // raccogli live + future del giocatore, dai alle live utcDate=now per ordinarle prime
+  const now = new Date().toISOString();
+  const live = data.live
+    .filter(m => isMyTeam(m.homeTeam.name) || isMyTeam(m.awayTeam.name))
+    .map(m => ({ ...m, _sortDate: now }));
+  const next = data.next
+    .filter(m => teams.includes(m.fantaTeam))
+    .map(m => ({ ...m, _sortDate: m.utcDate }));
+
+  // unisci e ordina cronologicamente, max 3
+  const slots = [...live, ...next]
+    .sort((a, b) => new Date(a._sortDate) - new Date(b._sortDate))
+    .slice(0, 3);
+
+  if (!slots.length) {
+    container.className = '';
+    container.innerHTML = '<div class="match-empty">Nessuna partita in programma</div>';
+    return;
+  }
+
+  container.className = '';
+  container.innerHTML = slots.map(m => {
+    const live     = isLiveStatus(m.status);
+    const hm       = teamMeta(m.homeTeam.name);
+    const am       = teamMeta(m.awayTeam.name);
+    const myHome   = isMyTeam(m.homeTeam.name);
+    const myAway   = isMyTeam(m.awayTeam.name);
+
+    if (live) {
+      const hs      = m.score?.fullTime?.home ?? m.score?.halfTime?.home ?? 0;
+      const as      = m.score?.fullTime?.away ?? m.score?.halfTime?.away ?? 0;
+      const isPause = m.status === 'HALFTIME' || m.status === 'PAUSED';
+      const minute  = isPause ? 'INT' : (m.minute ? m.minute + '′' : 'LIVE');
+      return `
+        <div class="mc live">
+          <div class="mc-team ${myHome ? 'mine' : ''}">
+            <span class="mc-flag">${hm.flag}</span>
+            <span class="mc-tla">${hm.tla}</span>
+          </div>
+          <div class="mc-mid">
+            <div class="mc-score">${hs} – ${as}</div>
+            <div class="mc-min live-blink">${minute}</div>
+          </div>
+          <div class="mc-team right ${myAway ? 'mine' : ''}">
+            <span class="mc-tla">${am.tla}</span>
+            <span class="mc-flag">${am.flag}</span>
+          </div>
+        </div>`;
+    } else {
+      return `
+        <div class="mc">
+          <div class="mc-team ${myHome ? 'mine' : ''}">
+            <span class="mc-flag">${hm.flag}</span>
+            <span class="mc-tla">${hm.tla}</span>
+          </div>
+          <div class="mc-mid">
+            <div class="mc-vs">VS</div>
+            <div class="mc-date">${formatMatchDate(m.utcDate)}</div>
+          </div>
+          <div class="mc-team right ${myAway ? 'mine' : ''}">
+            <span class="mc-tla">${am.tla}</span>
+            <span class="mc-flag">${am.flag}</span>
+          </div>
+        </div>`;
+    }
+  }).join('');
 }
 
 const ALL_TEAMS = [...PLAYER_TEAMS.chiara, ...PLAYER_TEAMS.mannu];
