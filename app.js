@@ -196,15 +196,17 @@ document.getElementById('modal').addEventListener('click', function(e) {
 document.addEventListener('click', function(e) {
   const counterBtn = e.target.closest('.counter-btn');
   if (counterBtn) {
+    e.stopPropagation();
     changeVal(counterBtn.dataset.target, parseInt(counterBtn.dataset.delta));
     return;
   }
   const bonusBtn = e.target.closest('.bonus-btn');
   if (bonusBtn) {
+    e.stopPropagation();
     togglePhase(parseInt(bonusBtn.dataset.phase));
     return;
   }
-});
+}, true); // capture phase — intercetta prima di qualsiasi altro handler
 
 // ─── INIT ────────────────────────────────────────────────
 loadState();
