@@ -217,55 +217,86 @@ const PLAYER_TEAMS = {
 function formatMatchDate(utcDate) {
   const d = new Date(utcDate);
   return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })
-    + ' ' + d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    + ' · ' + d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+}
+
+function shortName(fullName) {
+  const overrides = {
+    'Cape Verde Islands': 'Capo Verde',
+    'Korea Republic': 'Corea Sud',
+    'South Korea': 'Corea Sud',
+    'Saudi Arabia': 'Arabia S.',
+    'United States': 'USA',
+    'Bosnia-Herzegovina': 'Bosnia',
+    'Czechia': 'Rep. Ceca',
+    'Netherlands': 'Paesi Bassi',
+    'Türkiye': 'Turchia',
+  };
+  return overrides[fullName] || fullName;
 }
 
 function renderMatches(player, data) {
   const container = document.getElementById(player + '-matches');
   if (!data || data.error) {
-    container.innerHTML = '<span style="color:var(--text-muted);font-size:11px;padding:0 12px">Dati non disponibili</span>';
+    container.innerHTML = '<div class="match-empty">Dati non disponibili</div>';
     return;
   }
 
-  const teams     = PLAYER_TEAMS[player];
-  const myLive    = data.live.filter(m =>
-    teams.some(t => matchesTeamFE(t, m.homeTeam.name) || matchesTeamFE(t, m.awayTeam.name))
-  );
-  const myNext    = data.next.filter(m => teams.includes(m.fantaTeam)).slice(0, 4);
+  const teams  = PLAYER_TEAMS[player];
+  const isMyTeam = name => teams.some(t => matchesTeamFE(t, name));
 
-  let html = '';
+  // tutte le partite del giocatore (live + future) ordinate cronologicamente
+  const allMine = [
+    ...data.live.filter(m => isMyTeam(m.homeTeam.name) || isMyTeam(m.awayTeam.name)),
+    ...data.next.filter(m => teams.includes(m.fantaTeam))
+  ].sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate));
 
-  // partite live
-  myLive.forEach(m => {
-    const hs = m.score.fullTime.home ?? m.score.halfTime.home ?? '–';
-    const as = m.score.fullTime.away ?? m.score.halfTime.away ?? '–';
-    html += `
-      <div class="match-row">
-        <div class="match-teams">
-          <span class="match-team">${m.homeTeam.name}</span>
-          <span class="match-score">${hs} – ${as}</span>
-          <span class="match-team away">${m.awayTeam.name}</span>
-        </div>
-        <div class="match-info"><span class="live-badge">LIVE</span>${m.minute ?? ''}′</div>
-      </div>`;
-  });
+  // max 3 slot
+  const slots = allMine.slice(0, 3);
 
-  // prossime partite
-  myNext.forEach(m => {
-    html += `
-      <div class="match-row">
-        <div class="match-teams">
-          <span class="match-team">${m.homeTeam.name}</span>
-          <span class="match-score" style="font-size:11px;font-family:'Inter',sans-serif;color:var(--text-muted)">vs</span>
-          <span class="match-team away">${m.awayTeam.name}</span>
-        </div>
-        <div class="match-info">${formatMatchDate(m.utcDate)}</div>
-      </div>`;
-  });
-
-  if (!html) {
-    html = '<span style="color:var(--text-muted);font-size:11px;padding:0 12px;display:block;padding-bottom:8px">Nessuna partita in programma</span>';
+  if (!slots.length) {
+    container.innerHTML = '<div class="match-empty">Nessuna partita in programma</div>';
+    container.className = '';
+    return;
   }
+
+  const html = slots.map(m => {
+    const isLive = ['IN_PLAY', 'PAUSED', 'LIVE', 'HALFTIME'].includes(m.status);
+    const home   = shortName(m.homeTeam.name);
+    const away   = shortName(m.awayTeam.name);
+    const myHome = isMyTeam(m.homeTeam.name);
+    const myAway = isMyTeam(m.awayTeam.name);
+
+    if (isLive) {
+      const hs     = m.score.fullTime.home ?? m.score.halfTime.home ?? 0;
+      const as     = m.score.fullTime.away ?? m.score.halfTime.away ?? 0;
+      const isPause = m.status === 'HALFTIME' || m.status === 'PAUSED';
+      const minute  = isPause ? 'INT' : (m.minute ? m.minute + '′' : 'LIVE');
+      return `
+        <div class="match-card live">
+          <div class="match-card-inner">
+            <span class="mc-team ${myHome ? 'my-team' : ''}">${home}</span>
+            <div class="mc-center">
+              <div class="mc-score">${hs} – ${as}</div>
+              <div class="mc-time live-pulse">${minute}</div>
+            </div>
+            <span class="mc-team right ${myAway ? 'my-team' : ''}">${away}</span>
+          </div>
+        </div>`;
+    } else {
+      return `
+        <div class="match-card">
+          <div class="match-card-inner">
+            <span class="mc-team ${myHome ? 'my-team' : ''}">${home}</span>
+            <div class="mc-center">
+              <div class="mc-vs">VS</div>
+              <div class="mc-time">${formatMatchDate(m.utcDate)}</div>
+            </div>
+            <span class="mc-team right ${myAway ? 'my-team' : ''}">${away}</span>
+          </div>
+        </div>`;
+    }
+  }).join('');
 
   container.innerHTML = html;
   container.className = '';

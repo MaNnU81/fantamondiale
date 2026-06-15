@@ -239,7 +239,7 @@ header p {
   margin-bottom: 1rem;
 }
 .bonus-btn {
-  padding: 7px 4px;
+  padding: 9px 4px;
   font-size: 11px;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -248,8 +248,15 @@ header p {
   cursor: pointer;
   text-align: center;
   transition: all 0.12s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 .bonus-btn:hover { border-color: rgba(255,255,255,0.18); color: var(--text); }
+.bonus-btn.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.bonus-btn.disabled:hover { border-color: var(--border); color: var(--text-muted); }
 .bonus-btn.active {
   background: var(--chiara-bg);
   border-color: var(--chiara-border);
@@ -339,4 +346,110 @@ header p {
 }
 .counter-btn:active {
   transform: scale(0.92);
+}
+
+/* ─── MATCHES SECTION ───────────────────────────────────── */
+.matches-section {
+  margin-top: 6px;
+  border-top: 1px solid var(--border);
+  padding: 8px 0 4px;
+}
+
+.matches-title {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0 10px;
+  margin-bottom: 6px;
+}
+
+.match-card {
+  margin: 0 8px 6px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.match-card.live {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.match-card-inner {
+  display: flex;
+  align-items: center;
+  padding: 7px 8px;
+  gap: 4px;
+}
+
+.mc-team {
+  flex: 1;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.2;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mc-team.right { text-align: right; }
+.mc-team.my-team { color: var(--text); font-weight: 600; }
+
+.mc-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  min-width: 52px;
+}
+
+.mc-score {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 0.05em;
+  color: var(--text);
+  line-height: 1;
+}
+
+.mc-vs {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+.mc-time {
+  font-size: 9px;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.mc-time.live-pulse {
+  color: #FCA5A5;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  animation: livepulse 1.2s infinite;
+}
+
+@keyframes livepulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.match-empty {
+  padding: 6px 10px 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.matches-loading {
+  padding: 8px 10px;
+  font-size: 11px;
+  color: var(--text-muted);
 }
