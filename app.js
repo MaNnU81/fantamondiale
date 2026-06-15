@@ -208,5 +208,109 @@ document.addEventListener('click', function(e) {
   }
 }, true); // capture phase — intercetta prima di qualsiasi altro handler
 
+// ─── MATCHES ─────────────────────────────────────────────
+const PLAYER_TEAMS = {
+  chiara: ['Brasile','Portogallo','Norvegia','England','Paesi Bassi','Corea del Sud','Turchia','Belgio'],
+  mannu:  ['Spagna','Francia','Argentina','Germania','Croazia','Marocco','Ecuador','Giappone']
+};
+
+function formatMatchDate(utcDate) {
+  const d = new Date(utcDate);
+  return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })
+    + ' ' + d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+}
+
+function renderMatches(player, data) {
+  const container = document.getElementById(player + '-matches');
+  if (!data || data.error) {
+    container.innerHTML = '<span style="color:var(--text-muted);font-size:11px;padding:0 12px">Dati non disponibili</span>';
+    return;
+  }
+
+  const teams     = PLAYER_TEAMS[player];
+  const myLive    = data.live.filter(m =>
+    teams.some(t => matchesTeamFE(t, m.homeTeam.name) || matchesTeamFE(t, m.awayTeam.name))
+  );
+  const myNext    = data.next.filter(m => teams.includes(m.fantaTeam)).slice(0, 4);
+
+  let html = '';
+
+  // partite live
+  myLive.forEach(m => {
+    const hs = m.score.fullTime.home ?? m.score.halfTime.home ?? '–';
+    const as = m.score.fullTime.away ?? m.score.halfTime.away ?? '–';
+    html += `
+      <div class="match-row">
+        <div class="match-teams">
+          <span class="match-team">${m.homeTeam.name}</span>
+          <span class="match-score">${hs} – ${as}</span>
+          <span class="match-team away">${m.awayTeam.name}</span>
+        </div>
+        <div class="match-info"><span class="live-badge">LIVE</span>${m.minute ?? ''}′</div>
+      </div>`;
+  });
+
+  // prossime partite
+  myNext.forEach(m => {
+    html += `
+      <div class="match-row">
+        <div class="match-teams">
+          <span class="match-team">${m.homeTeam.name}</span>
+          <span class="match-score" style="font-size:11px;font-family:'Inter',sans-serif;color:var(--text-muted)">vs</span>
+          <span class="match-team away">${m.awayTeam.name}</span>
+        </div>
+        <div class="match-info">${formatMatchDate(m.utcDate)}</div>
+      </div>`;
+  });
+
+  if (!html) {
+    html = '<span style="color:var(--text-muted);font-size:11px;padding:0 12px;display:block;padding-bottom:8px">Nessuna partita in programma</span>';
+  }
+
+  container.innerHTML = html;
+  container.className = '';
+}
+
+// mapping nomi fanta → nomi API (lato frontend per filtrare)
+function matchesTeamFE(fantaName, apiName) {
+  const map = {
+    'Brasile':       ['Brazil'],
+    'Portogallo':    ['Portugal'],
+    'Norvegia':      ['Norway'],
+    'England':       ['England'],
+    'Paesi Bassi':   ['Netherlands'],
+    'Corea del Sud': ['Korea Republic', 'South Korea'],
+    'Turchia':       ['Türkiye', 'Turkey'],
+    'Belgio':        ['Belgium'],
+    'Spagna':        ['Spain'],
+    'Francia':       ['France'],
+    'Argentina':     ['Argentina'],
+    'Germania':      ['Germany'],
+    'Croazia':       ['Croatia'],
+    'Marocco':       ['Morocco'],
+    'Ecuador':       ['Ecuador'],
+    'Giappone':      ['Japan']
+  };
+  const aliases = map[fantaName] || [];
+  return aliases.some(a => apiName.toLowerCase().includes(a.toLowerCase()));
+}
+
+const ALL_TEAMS = [...PLAYER_TEAMS.chiara, ...PLAYER_TEAMS.mannu];
+
+async function loadMatches() {
+  try {
+    const url  = API + '?action=matches&teams=' + encodeURIComponent(ALL_TEAMS.join(','));
+    const r    = await fetch(url);
+    const data = JSON.parse(await r.text());
+    renderMatches('chiara', data);
+    renderMatches('mannu', data);
+  } catch (e) {
+    ['chiara', 'mannu'].forEach(p => renderMatches(p, null));
+  }
+}
+
 // ─── INIT ────────────────────────────────────────────────
 loadState();
+loadMatches();
+// aggiorna partite ogni 60 secondi
+setInterval(loadMatches, 60000);
