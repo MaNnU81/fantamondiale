@@ -192,20 +192,18 @@ document.getElementById('modal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
 
-// counter buttons — touchstart per mobile, click per desktop
-document.querySelectorAll('.counter-btn').forEach(btn => {
-  btn.addEventListener('touchstart', function(e) {
-    e.preventDefault();
-    changeVal(this.dataset.target, parseInt(this.dataset.delta));
-  }, { passive: false });
-});
-
-// bonus buttons — touchstart per mobile, click per desktop
-document.querySelectorAll('.bonus-btn').forEach(btn => {
-  btn.addEventListener('touchstart', function(e) {
-    e.preventDefault();
-    togglePhase(parseInt(this.dataset.phase));
-  }, { passive: false });
+// Event delegation — funziona su mobile e desktop, non dipende dal DOM timing
+document.addEventListener('click', function(e) {
+  const counterBtn = e.target.closest('.counter-btn');
+  if (counterBtn) {
+    changeVal(counterBtn.dataset.target, parseInt(counterBtn.dataset.delta));
+    return;
+  }
+  const bonusBtn = e.target.closest('.bonus-btn');
+  if (bonusBtn) {
+    togglePhase(parseInt(bonusBtn.dataset.phase));
+    return;
+  }
 });
 
 // ─── INIT ────────────────────────────────────────────────
