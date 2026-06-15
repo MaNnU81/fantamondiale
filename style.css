@@ -460,3 +460,35 @@ header p {
   font-size: 11px;
   color: var(--text-muted);
 }
+
+/* ─── MOBILE RESPONSIVE ─────────────────────────────────── */
+
+/* portrait mobile: nascondi il nome nazione, ingrandisci bandiera */
+@media (max-width: 600px) and (orientation: portrait) {
+  .nation-name {
+    display: none;
+  }
+  .flag {
+    font-size: 22px;
+    min-width: 28px;
+  }
+  .nation-pts {
+    min-width: 24px;
+    font-size: 11px;
+  }
+  .edit-btn {
+    width: 28px;
+    height: 28px;
+  }
+  .player-name {
+    font-size: 12px;
+  }
+}
+
+/* landscape mobile: mostra tutto normalmente */
+@media (max-width: 900px) and (orientation: landscape) {
+  .nation-name {
+    display: block;
+    font-size: 11px;
+  }
+}
