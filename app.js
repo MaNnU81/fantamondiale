@@ -109,6 +109,13 @@ function render() {
 }
 
 // ─── MODAL ───────────────────────────────────────────────
+function changeVal(id, delta) {
+  const input = document.getElementById(id);
+  const newVal = Math.max(0, (parseInt(input.value) || 0) + delta);
+  input.value = newVal;
+  updatePreview();
+}
+
 function openModal(pl, name) {
   editingKey = pl + '_' + name;
   const d = state[editingKey] || { wins: 0, draws: 0, phase: 0 };
@@ -159,8 +166,6 @@ function saveNation() {
 }
 
 // ─── EVENTS ──────────────────────────────────────────────
-document.getElementById('inp-wins').addEventListener('input', updatePreview);
-document.getElementById('inp-draws').addEventListener('input', updatePreview);
 document.getElementById('modal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });

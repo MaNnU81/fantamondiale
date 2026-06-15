@@ -42,14 +42,28 @@
   <div class="modal">
     <div class="modal-title" id="modal-title">Modifica</div>
     <div class="score-grid">
-      <div class="score-field"><label>Vittorie</label><input type="number" id="inp-wins" min="0" value="0"></div>
-      <div class="score-field"><label>Pareggi</label><input type="number" id="inp-draws" min="0" value="0"></div>
+      <div class="score-field">
+        <label>Vittorie</label>
+        <div class="counter">
+          <button class="counter-btn" onclick="changeVal('inp-wins', -1)">−</button>
+          <input type="number" id="inp-wins" min="0" value="0" readonly>
+          <button class="counter-btn" onclick="changeVal('inp-wins', 1)">+</button>
+        </div>
+      </div>
+      <div class="score-field">
+        <label>Pareggi</label>
+        <div class="counter">
+          <button class="counter-btn" onclick="changeVal('inp-draws', -1)">−</button>
+          <input type="number" id="inp-draws" min="0" value="0" readonly>
+          <button class="counter-btn" onclick="changeVal('inp-draws', 1)">+</button>
+        </div>
+      </div>
     </div>
     <div class="phase-label">Fase raggiunta</div>
     <div class="bonus-grid">
-      <div class="bonus-btn" data-phase="0" onclick="selectPhase(0)">Nessuna</div>
-      <div class="bonus-btn" data-phase="5" onclick="selectPhase(5)">Gironi +5</div>
-      <div class="bonus-btn" data-phase="8" onclick="selectPhase(8)">Quarti +8</div>
+      <div class="bonus-btn" data-phase="0"  onclick="selectPhase(0)">Nessuna</div>
+      <div class="bonus-btn" data-phase="5"  onclick="selectPhase(5)">Gironi +5</div>
+      <div class="bonus-btn" data-phase="8"  onclick="selectPhase(8)">Quarti +8</div>
       <div class="bonus-btn" data-phase="12" onclick="selectPhase(12)">Semifinale +12</div>
       <div class="bonus-btn" data-phase="18" onclick="selectPhase(18)">Finale +18</div>
       <div class="bonus-btn" data-phase="30" onclick="selectPhase(30)">🏆 Campione +30</div>
