@@ -2,33 +2,37 @@ const API = 'https://script.google.com/macros/s/AKfycbzHa5LtE26ccB_h3rCriHNVCitV
 
 const NATIONS = {
   chiara: [
-    { name: 'Brasile',      flag: '🇧🇷' },
-    { name: 'Portogallo',   flag: '🇵🇹' },
-    { name: 'Norvegia',     flag: '🇳🇴' },
-    { name: 'England',      flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
-    { name: 'Paesi Bassi',  flag: '🇳🇱' },
-    { name: 'Corea del Sud',flag: '🇰🇷' },
-    { name: 'Turchia',      flag: '🇹🇷' },
-    { name: 'Belgio',       flag: '🇧🇪' },
+    { name: 'Brasile',       flag: '🇧🇷' },
+    { name: 'Portogallo',    flag: '🇵🇹' },
+    { name: 'Norvegia',      flag: '🇳🇴' },
+    { name: 'England',       flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
+    { name: 'Paesi Bassi',   flag: '🇳🇱' },
+    { name: 'Corea del Sud', flag: '🇰🇷' },
+    { name: 'Turchia',       flag: '🇹🇷' },
+    { name: 'Belgio',        flag: '🇧🇪' },
   ],
   mannu: [
-    { name: 'Spagna',   flag: '🇪🇸' },
-    { name: 'Francia',  flag: '🇫🇷' },
-    { name: 'Argentina',flag: '🇦🇷' },
-    { name: 'Germania', flag: '🇩🇪' },
-    { name: 'Croazia',  flag: '🇭🇷' },
-    { name: 'Marocco',  flag: '🇲🇦' },
-    { name: 'Ecuador',  flag: '🇪🇨' },
-    { name: 'Giappone', flag: '🇯🇵' },
+    { name: 'Spagna',    flag: '🇪🇸' },
+    { name: 'Francia',   flag: '🇫🇷' },
+    { name: 'Argentina', flag: '🇦🇷' },
+    { name: 'Germania',  flag: '🇩🇪' },
+    { name: 'Croazia',   flag: '🇭🇷' },
+    { name: 'Marocco',   flag: '🇲🇦' },
+    { name: 'Ecuador',   flag: '🇪🇨' },
+    { name: 'Giappone',  flag: '🇯🇵' },
   ]
 };
 
-let state = {};
+const PHASE_ORDER = [5, 8, 12, 18, 30];
+
+let state      = {};
 let editingKey = null;
-let selectedPhase = 0;
+let activePhases = new Set();
 
 // ─── UTILS ───────────────────────────────────────────────
-function calcPts(w, d, p) { return w * 3 + d + p; }
+function calcPts(w, d, phases) {
+  return w * 3 + d + [...phases].reduce((sum, p) => sum + p, 0);
+}
 
 function setStatus(type, txt) {
   document.getElementById('sdot').className = 'status-dot ' + type;
@@ -38,7 +42,7 @@ function setStatus(type, txt) {
 function defaultState() {
   const s = {};
   ['chiara', 'mannu'].forEach(pl =>
-    NATIONS[pl].forEach(n => { s[pl + '_' + n.name] = { wins: 0, draws: 0, phase: 0 }; })
+    NATIONS[pl].forEach(n => { s[pl + '_' + n.name] = { wins: 0, draws: 0, phases: [] }; })
   );
   return s;
 }
@@ -47,7 +51,7 @@ function defaultState() {
 async function loadState() {
   setStatus('', 'caricamento...');
   try {
-    const r = await fetch(API + '?t=' + Date.now());
+    const r    = await fetch(API + '?t=' + Date.now());
     const data = JSON.parse(await r.text());
     state = (data && typeof data === 'object' && !data.error) ? data : defaultState();
     setStatus('ok', 'dati caricati');
@@ -78,8 +82,8 @@ function render() {
 
     NATIONS[pl].forEach(n => {
       const key = pl + '_' + n.name;
-      const d = state[key] || { wins: 0, draws: 0, phase: 0 };
-      const pts = calcPts(d.wins, d.draws, d.phase);
+      const d   = state[key] || { wins: 0, draws: 0, phases: [] };
+      const pts = calcPts(d.wins, d.draws, new Set(d.phases || []));
       tot += pts;
 
       const row = document.createElement('div');
@@ -108,34 +112,24 @@ function render() {
     b.innerHTML = `🤝 Pari! <span class="chiara-color">${ct}</span> — <span class="mannu-color">${mt}</span> pt`;
 }
 
-// ─── MODAL ───────────────────────────────────────────────
+// ─── COUNTER ─────────────────────────────────────────────
 function changeVal(id, delta) {
-  const input = document.getElementById(id);
+  const input  = document.getElementById(id);
   const newVal = Math.max(0, (parseInt(input.value) || 0) + delta);
-  input.value = newVal;
+  input.value  = newVal;
   updatePreview();
 }
 
-function bindCounterButtons() {
-  document.querySelectorAll('.counter-btn').forEach(btn => {
-    btn.addEventListener('touchstart', function(e) {
-      e.preventDefault();
-      const id    = this.dataset.target;
-      const delta = parseInt(this.dataset.delta);
-      changeVal(id, delta);
-    }, { passive: false });
-  });
-}
-
+// ─── MODAL ───────────────────────────────────────────────
 function openModal(pl, name) {
   editingKey = pl + '_' + name;
-  const d = state[editingKey] || { wins: 0, draws: 0, phase: 0 };
+  const d = state[editingKey] || { wins: 0, draws: 0, phases: [] };
   const n = NATIONS[pl].find(x => x.name === name);
 
   document.getElementById('modal-title').innerHTML = `<span>${n.flag}</span> ${name}`;
-  document.getElementById('inp-wins').value = d.wins;
+  document.getElementById('inp-wins').value  = d.wins;
   document.getElementById('inp-draws').value = d.draws;
-  selectedPhase = d.phase;
+  activePhases = new Set(d.phases || []);
   updatePhaseButtons();
   updatePreview();
   document.getElementById('modal').classList.add('open');
@@ -146,30 +140,47 @@ function closeModal() {
   editingKey = null;
 }
 
-function selectPhase(p) {
-  selectedPhase = p;
+function togglePhase(p) {
+  const idx  = PHASE_ORDER.indexOf(p);
+  const prev = PHASE_ORDER[idx - 1];
+
+  if (activePhases.has(p)) {
+    // deseleziona questa e tutte le successive
+    PHASE_ORDER.slice(idx).forEach(ph => activePhases.delete(ph));
+  } else {
+    // seleziona solo se la precedente è attiva (o è la prima)
+    if (idx === 0 || activePhases.has(prev)) {
+      activePhases.add(p);
+    }
+  }
   updatePhaseButtons();
   updatePreview();
 }
 
 function updatePhaseButtons() {
-  document.querySelectorAll('.bonus-btn').forEach(b =>
-    b.classList.toggle('active', parseInt(b.dataset.phase) === selectedPhase)
-  );
+  document.querySelectorAll('.bonus-btn').forEach(b => {
+    const p   = parseInt(b.dataset.phase);
+    const idx = PHASE_ORDER.indexOf(p);
+    const prev = PHASE_ORDER[idx - 1];
+    const isActive   = activePhases.has(p);
+    const isDisabled = idx > 0 && !activePhases.has(prev) && !isActive;
+    b.classList.toggle('active', isActive);
+    b.classList.toggle('disabled', isDisabled);
+  });
 }
 
 function updatePreview() {
-  const w = parseInt(document.getElementById('inp-wins').value) || 0;
+  const w = parseInt(document.getElementById('inp-wins').value)  || 0;
   const d = parseInt(document.getElementById('inp-draws').value) || 0;
-  document.getElementById('pts-prev').textContent = calcPts(w, d, selectedPhase);
+  document.getElementById('pts-prev').textContent = calcPts(w, d, activePhases);
 }
 
 function saveNation() {
   if (!editingKey) return;
   state[editingKey] = {
-    wins:  parseInt(document.getElementById('inp-wins').value)  || 0,
-    draws: parseInt(document.getElementById('inp-draws').value) || 0,
-    phase: selectedPhase
+    wins:   parseInt(document.getElementById('inp-wins').value)  || 0,
+    draws:  parseInt(document.getElementById('inp-draws').value) || 0,
+    phases: [...activePhases]
   };
   render();
   closeModal();
@@ -181,6 +192,21 @@ document.getElementById('modal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
 
+// counter buttons — touchstart per mobile, click per desktop
+document.querySelectorAll('.counter-btn').forEach(btn => {
+  btn.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    changeVal(this.dataset.target, parseInt(this.dataset.delta));
+  }, { passive: false });
+});
+
+// bonus buttons — touchstart per mobile, click per desktop
+document.querySelectorAll('.bonus-btn').forEach(btn => {
+  btn.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    togglePhase(parseInt(this.dataset.phase));
+  }, { passive: false });
+});
+
 // ─── INIT ────────────────────────────────────────────────
-bindCounterButtons();
 loadState();
