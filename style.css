@@ -471,3 +471,51 @@ header p {
     display: inline;
   }
 }
+
+/* ─── RESULTS ACCORDION ──────────────────────────────────── */
+.results-accordion {
+  border-top: 1px solid var(--border);
+}
+
+.accordion-btn {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-family: 'Inter', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.accordion-btn:hover { color: var(--text); }
+
+.accordion-arrow {
+  font-size: 9px;
+  transition: transform 0.2s;
+}
+.accordion-arrow.open {
+  transform: rotate(180deg);
+}
+
+.accordion-body {
+  display: none;
+  padding-bottom: 4px;
+}
+.accordion-body.open {
+  display: block;
+}
+
+.mc.finished {
+  opacity: 0.7;
+}
+.mc.finished .mc-score {
+  color: var(--text-muted);
+}

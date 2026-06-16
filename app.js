@@ -409,7 +409,57 @@ function renderMatches(player, data) {
   }).join('');
 }
 
-const ALL_TEAMS = [...PLAYER_TEAMS.chiara, ...PLAYER_TEAMS.mannu];
+function renderResults(player, data) {
+  const container = document.getElementById(player + '-results');
+  if (!data || data.error) {
+    container.innerHTML = '<div class="match-empty">Dati non disponibili</div>';
+    return;
+  }
+
+  const teams    = PLAYER_TEAMS[player];
+  const isMyTeam = name => teams.some(t => matchesTeamFE(t, name));
+
+  const finished = (data.finished || [])
+    .filter(m => isMyTeam(m.homeTeam.name) || isMyTeam(m.awayTeam.name))
+    .sort((a, b) => new Date(b.utcDate) - new Date(a.utcDate)); // più recenti prima
+
+  if (!finished.length) {
+    container.innerHTML = '<div class="match-empty">Nessuna partita conclusa</div>';
+    return;
+  }
+
+  container.innerHTML = finished.map(m => {
+    const hm     = teamMeta(m.homeTeam.name);
+    const am     = teamMeta(m.awayTeam.name);
+    const myHome = isMyTeam(m.homeTeam.name);
+    const myAway = isMyTeam(m.awayTeam.name);
+    const hs     = m.score?.fullTime?.home ?? '?';
+    const as     = m.score?.fullTime?.away ?? '?';
+    const date   = new Date(m.utcDate).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
+    return `
+      <div class="mc finished">
+        <div class="mc-team ${myHome ? 'mine' : ''}">
+          <span class="mc-flag">${hm.flag}</span>
+          <span class="mc-tla">${hm.tla}</span>
+        </div>
+        <div class="mc-mid">
+          <div class="mc-score">${hs} – ${as}</div>
+          <div class="mc-date">${date}</div>
+        </div>
+        <div class="mc-team right ${myAway ? 'mine' : ''}">
+          <span class="mc-tla">${am.tla}</span>
+          <span class="mc-flag">${am.flag}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleAccordion(player) {
+  const body  = document.getElementById(player + '-results');
+  const arrow = document.getElementById(player + '-arrow');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
 
 async function loadMatches() {
   try {
@@ -418,8 +468,13 @@ async function loadMatches() {
     const data = JSON.parse(await r.text());
     renderMatches('chiara', data);
     renderMatches('mannu', data);
+    renderResults('chiara', data);
+    renderResults('mannu', data);
   } catch (e) {
-    ['chiara', 'mannu'].forEach(p => renderMatches(p, null));
+    ['chiara', 'mannu'].forEach(p => {
+      renderMatches(p, null);
+      renderResults(p, null);
+    });
   }
 }
 
