@@ -461,6 +461,8 @@ function toggleAccordion(player) {
   arrow.classList.toggle('open');
 }
 
+const ALL_TEAMS = [...PLAYER_TEAMS.chiara, ...PLAYER_TEAMS.mannu];
+
 async function loadMatches() {
   try {
     const url  = API + '?action=matches&teams=' + encodeURIComponent(ALL_TEAMS.join(','));
