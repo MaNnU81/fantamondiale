@@ -51,7 +51,7 @@ function defaultState() {
 async function loadState() {
   setStatus('', 'caricamento...');
   try {
-    const r    = await fetch(API + '?t=' + Date.now());
+    const r    = await fetch(API + '?t=' + Date.now(), { redirect: 'follow' });
     const data = JSON.parse(await r.text());
     state = (data && typeof data === 'object' && !data.error) ? data : defaultState();
     setStatus('ok', 'dati caricati');
@@ -464,13 +464,20 @@ function toggleAccordion(player) {
 async function loadMatches() {
   try {
     const url  = API + '?action=matches&teams=' + encodeURIComponent(ALL_TEAMS.join(','));
-    const r    = await fetch(url);
-    const data = JSON.parse(await r.text());
+    const r    = await fetch(url, { redirect: 'follow' });
+    const txt  = await r.text();
+    const data = JSON.parse(txt);
+    if (data.error) {
+      console.error('API error:', data.error);
+      ['chiara', 'mannu'].forEach(p => { renderMatches(p, null); renderResults(p, null); });
+      return;
+    }
     renderMatches('chiara', data);
     renderMatches('mannu', data);
     renderResults('chiara', data);
     renderResults('mannu', data);
   } catch (e) {
+    console.error('loadMatches failed:', e);
     ['chiara', 'mannu'].forEach(p => {
       renderMatches(p, null);
       renderResults(p, null);
