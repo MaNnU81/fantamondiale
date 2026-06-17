@@ -387,8 +387,8 @@ header p {
   background: var(--surface2);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 8px 8px;
-  min-height: 44px;
+  padding: 9px 8px;
+  min-height: 48px;
 }
 .mc.live {
   border-color: rgba(239,68,68,0.45);
@@ -431,7 +431,7 @@ header p {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 5px;
   flex-shrink: 0;
   min-width: 56px;
 }
@@ -443,8 +443,9 @@ header p {
   line-height: 1;
 }
 .mc-vs {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 11px;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
   letter-spacing: 0.1em;
   color: var(--text-muted);
   line-height: 1;
@@ -461,7 +462,8 @@ header p {
   color: var(--text-muted);
   letter-spacing: 0.02em;
   text-align: center;
-  line-height: 1;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 .live-blink {
   color: #FCA5A5;
