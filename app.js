@@ -23,7 +23,8 @@ const NATIONS = {
   ]
 };
 
-const PHASE_ORDER = [5, 8, 12, 18, 30];
+const PHASE_ORDER = [5, 6, 8, 12, 18];
+const FINAL_TIER   = [10, 30]; // mutuamente esclusivi, richiedono 18 attivo
 
 let state      = {};
 let editingKey = null;
@@ -141,12 +142,27 @@ function closeModal() {
 }
 
 function togglePhase(p) {
+  // gestione tier finale (3° posto / Campione) — mutuamente esclusivi
+  if (FINAL_TIER.includes(p)) {
+    if (!activePhases.has(18)) return; // serve la semifinale prima
+    if (activePhases.has(p)) {
+      activePhases.delete(p);
+    } else {
+      FINAL_TIER.forEach(t => activePhases.delete(t)); // rimuovi l'altro
+      activePhases.add(p);
+    }
+    updatePhaseButtons();
+    updatePreview();
+    return;
+  }
+
   const idx  = PHASE_ORDER.indexOf(p);
   const prev = PHASE_ORDER[idx - 1];
 
   if (activePhases.has(p)) {
-    // deseleziona questa e tutte le successive
+    // deseleziona questa e tutte le successive (incluso il tier finale)
     PHASE_ORDER.slice(idx).forEach(ph => activePhases.delete(ph));
+    FINAL_TIER.forEach(t => activePhases.delete(t));
   } else {
     // seleziona solo se la precedente è attiva (o è la prima)
     if (idx === 0 || activePhases.has(prev)) {
@@ -159,8 +175,17 @@ function togglePhase(p) {
 
 function updatePhaseButtons() {
   document.querySelectorAll('.bonus-btn').forEach(b => {
-    const p   = parseInt(b.dataset.phase);
-    const idx = PHASE_ORDER.indexOf(p);
+    const p = parseInt(b.dataset.phase);
+
+    if (FINAL_TIER.includes(p)) {
+      const isActive   = activePhases.has(p);
+      const isDisabled = !activePhases.has(18) && !isActive;
+      b.classList.toggle('active', isActive);
+      b.classList.toggle('disabled', isDisabled);
+      return;
+    }
+
+    const idx  = PHASE_ORDER.indexOf(p);
     const prev = PHASE_ORDER[idx - 1];
     const isActive   = activePhases.has(p);
     const isDisabled = idx > 0 && !activePhases.has(prev) && !isActive;

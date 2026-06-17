@@ -263,6 +263,20 @@ header p {
   color: var(--chiara-mid);
   font-weight: 600;
 }
+
+.bonus-grid-2 {
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 1rem;
+}
+.final-tier {
+  font-weight: 600;
+  padding: 9px 4px;
+}
+.final-tier.active {
+  background: linear-gradient(135deg, #B45309, #92400E);
+  border-color: #F59E0B;
+  color: #FDE68A;
+}
 .pts-preview {
   text-align: center;
   padding: 9px;
@@ -373,7 +387,8 @@ header p {
   background: var(--surface2);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 6px 8px;
+  padding: 8px 8px;
+  min-height: 44px;
 }
 .mc.live {
   border-color: rgba(239,68,68,0.45);
@@ -387,6 +402,7 @@ header p {
   gap: 4px;
   flex: 1;
   min-width: 0;
+  line-height: 1;
 }
 .mc-team.right {
   flex-direction: row-reverse;
@@ -394,6 +410,7 @@ header p {
 .mc-flag {
   font-size: 16px;
   flex-shrink: 0;
+  line-height: 1;
   font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
 }
 .mc-tla {
@@ -402,6 +419,7 @@ header p {
   letter-spacing: 0.04em;
   color: var(--text-muted);
   white-space: nowrap;
+  line-height: 1;
 }
 .mc-team.mine .mc-tla {
   color: var(--text);
@@ -412,20 +430,21 @@ header p {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1px;
+  justify-content: center;
+  gap: 3px;
   flex-shrink: 0;
-  min-width: 54px;
+  min-width: 56px;
 }
 .mc-score {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 19px;
+  font-size: 18px;
   letter-spacing: 0.04em;
   color: var(--text);
   line-height: 1;
 }
 .mc-vs {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 12px;
+  font-size: 11px;
   letter-spacing: 0.1em;
   color: var(--text-muted);
   line-height: 1;
@@ -435,13 +454,14 @@ header p {
   font-weight: 700;
   color: var(--text-muted);
   letter-spacing: 0.05em;
+  line-height: 1;
 }
 .mc-date {
   font-size: 9px;
   color: var(--text-muted);
   letter-spacing: 0.02em;
   text-align: center;
-  margin-top: 4px;
+  line-height: 1;
 }
 .live-blink {
   color: #FCA5A5;
