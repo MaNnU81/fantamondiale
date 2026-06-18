@@ -550,10 +550,11 @@ function renderCaptainBody(player) {
 
   const scorersHtml = myTeamScorers.length
     ? myTeamScorers.map(s => {
-        const isGold = maxGoals > 0 && s.goals === maxGoals;
+        const isGold    = maxGoals > 0 && s.goals === maxGoals;
+        const isCaptain = s.name === captain.name;
         const tm = teamMeta(s.team);
         return `
-          <div class="scorer-row ${isGold ? 'gold' : ''}">
+          <div class="scorer-row ${isGold ? 'gold' : ''} ${isCaptain ? 'is-captain' : ''}">
             <span class="scorer-name">${s.name}</span>
             <span class="scorer-team">${tm.flag} ${tm.tla}</span>
             <span class="scorer-goals">${s.goals}</span>
@@ -562,7 +563,7 @@ function renderCaptainBody(player) {
     : '<div class="match-empty">Nessun marcatore ancora</div>';
 
   body.innerHTML = `
-    <div class="captain-card ${isLeading ? 'on-target' : ''}">
+    <div class="captain-card">
       <span class="captain-icon">🎖️</span>
       <div class="captain-info">
         <div class="captain-name">${captain.name}</div>

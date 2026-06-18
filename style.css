@@ -549,17 +549,13 @@ header p {
 
 .captain-card {
   margin: 0 8px 6px;
-  background: linear-gradient(135deg, rgba(245,158,11,0.10), rgba(180,83,9,0.06));
-  border: 1px solid rgba(245,158,11,0.3);
+  background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(5,150,105,0.08));
+  border: 1px solid rgba(16,185,129,0.35);
   border-radius: 8px;
   padding: 9px 10px;
   display: flex;
   align-items: center;
   gap: 8px;
-}
-.captain-card.on-target {
-  background: linear-gradient(135deg, rgba(245,158,11,0.28), rgba(180,83,9,0.18));
-  border-color: #F59E0B;
 }
 
 .captain-icon {
@@ -597,8 +593,8 @@ header p {
   color: #FDE68A;
 }
 .captain-badge.normal {
-  background: var(--surface2);
-  color: var(--text-muted);
+  background: rgba(16,185,129,0.18);
+  color: #6EE7B7;
 }
 
 .scorers-title {
@@ -624,6 +620,13 @@ header p {
 .scorer-row.gold {
   background: rgba(245,158,11,0.12);
   border-color: rgba(245,158,11,0.4);
+}
+.scorer-row.is-captain .scorer-name {
+  color: #6EE7B7;
+  font-weight: 600;
+}
+.scorer-row.gold.is-captain .scorer-name {
+  color: #FDE68A;
 }
 .scorer-name {
   flex: 1;
