@@ -32,6 +32,12 @@
       <div class="matches-title">Partite</div>
       <div id="chiara-matches" class="matches-loading">caricamento...</div>
     </div>
+    <div class="captain-accordion">
+      <button class="accordion-btn" onclick="toggleCaptainAccordion('chiara')">
+        <span>Capitano</span><span class="accordion-arrow" id="chiara-captain-arrow">▼</span>
+      </button>
+      <div class="accordion-body" id="chiara-captain-body"></div>
+    </div>
     <div class="results-accordion">
       <button class="accordion-btn" onclick="toggleAccordion('chiara')">
         <span>Risultati</span><span class="accordion-arrow" id="chiara-arrow">▼</span>
@@ -48,6 +54,12 @@
     <div class="matches-section">
       <div class="matches-title">Partite</div>
       <div id="mannu-matches" class="matches-loading">caricamento...</div>
+    </div>
+    <div class="captain-accordion">
+      <button class="accordion-btn" onclick="toggleCaptainAccordion('mannu')">
+        <span>Capitano</span><span class="accordion-arrow" id="mannu-captain-arrow">▼</span>
+      </button>
+      <div class="accordion-body" id="mannu-captain-body"></div>
     </div>
     <div class="results-accordion">
       <button class="accordion-btn" onclick="toggleAccordion('mannu')">
@@ -91,6 +103,12 @@
     <div class="bonus-grid bonus-grid-2">
       <div class="bonus-btn final-tier" data-phase="10">3° posto +10</div>
       <div class="bonus-btn final-tier" data-phase="30">🏆 Campione +30</div>
+    </div>
+    <div id="topscorer-bonus-row" style="display:none">
+      <div class="phase-label">Bonus capitano</div>
+      <div class="bonus-grid">
+        <div class="bonus-btn final-tier" data-phase="topscorer" id="topscorer-btn" style="grid-column: span 2">⚽ Capocannoniere +10</div>
+      </div>
     </div>
     <div class="pts-preview">Punti totali: <strong id="pts-prev">0</strong></div>
     <div class="modal-footer">

@@ -541,3 +541,106 @@ header p {
 .mc.finished .mc-score {
   color: var(--text-muted);
 }
+
+/* ─── CAPTAIN ACCORDION ──────────────────────────────────── */
+.captain-accordion {
+  border-top: 1px solid var(--border);
+}
+
+.captain-card {
+  margin: 0 8px 6px;
+  background: linear-gradient(135deg, rgba(245,158,11,0.10), rgba(180,83,9,0.06));
+  border: 1px solid rgba(245,158,11,0.3);
+  border-radius: 8px;
+  padding: 9px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.captain-card.on-target {
+  background: linear-gradient(135deg, rgba(245,158,11,0.28), rgba(180,83,9,0.18));
+  border-color: #F59E0B;
+}
+
+.captain-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.captain-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.captain-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.captain-team {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.captain-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 3px 7px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.captain-badge.gold {
+  background: rgba(245,158,11,0.25);
+  color: #FDE68A;
+}
+.captain-badge.normal {
+  background: var(--surface2);
+  color: var(--text-muted);
+}
+
+.scorers-title {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 6px 10px 4px;
+}
+
+.scorer-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 8px 4px;
+  padding: 6px 9px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font-size: 11px;
+}
+.scorer-row.gold {
+  background: rgba(245,158,11,0.12);
+  border-color: rgba(245,158,11,0.4);
+}
+.scorer-name {
+  flex: 1;
+  color: var(--text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.scorer-team {
+  color: var(--text-muted);
+  font-size: 9px;
+}
+.scorer-goals {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 15px;
+  color: var(--text);
+  min-width: 20px;
+  text-align: right;
+}

@@ -28,11 +28,13 @@ const FINAL_TIER   = [10, 30]; // mutuamente esclusivi, richiedono 18 attivo
 
 let state      = {};
 let editingKey = null;
-let activePhases = new Set();
+let activePhases   = new Set();
+let topScorerActive = false;
 
 // ─── UTILS ───────────────────────────────────────────────
-function calcPts(w, d, phases) {
-  return w * 3 + d + [...phases].reduce((sum, p) => sum + p, 0);
+function calcPts(w, d, phases, topScorer) {
+  const base = w * 3 + d + [...phases].reduce((sum, p) => sum + p, 0);
+  return base + (topScorer ? 10 : 0);
 }
 
 function setStatus(type, txt) {
@@ -84,7 +86,7 @@ function render() {
     NATIONS[pl].forEach(n => {
       const key = pl + '_' + n.name;
       const d   = state[key] || { wins: 0, draws: 0, phases: [] };
-      const pts = calcPts(d.wins, d.draws, new Set(d.phases || []));
+      const pts = calcPts(d.wins, d.draws, new Set(d.phases || []), d.topScorer);
       tot += pts;
 
       const row = document.createElement('div');
@@ -124,13 +126,17 @@ function changeVal(id, delta) {
 // ─── MODAL ───────────────────────────────────────────────
 function openModal(pl, name) {
   editingKey = pl + '_' + name;
-  const d = state[editingKey] || { wins: 0, draws: 0, phases: [] };
+  const d = state[editingKey] || { wins: 0, draws: 0, phases: [], topScorer: false };
   const n = NATIONS[pl].find(x => x.name === name);
 
   document.getElementById('modal-title').innerHTML = `<span>${n.flag}</span> ${name}`;
   document.getElementById('inp-wins').value  = d.wins;
   document.getElementById('inp-draws').value = d.draws;
-  activePhases = new Set(d.phases || []);
+  activePhases     = new Set(d.phases || []);
+  topScorerActive  = !!d.topScorer;
+  maybeShowTopScorerBonus(pl, name);
+  const tsBtn = document.getElementById('topscorer-btn');
+  if (tsBtn) tsBtn.classList.toggle('active', topScorerActive);
   updatePhaseButtons();
   updatePreview();
   document.getElementById('modal').classList.add('open');
@@ -197,15 +203,16 @@ function updatePhaseButtons() {
 function updatePreview() {
   const w = parseInt(document.getElementById('inp-wins').value)  || 0;
   const d = parseInt(document.getElementById('inp-draws').value) || 0;
-  document.getElementById('pts-prev').textContent = calcPts(w, d, activePhases);
+  document.getElementById('pts-prev').textContent = calcPts(w, d, activePhases, topScorerActive);
 }
 
 function saveNation() {
   if (!editingKey) return;
   state[editingKey] = {
-    wins:   parseInt(document.getElementById('inp-wins').value)  || 0,
-    draws:  parseInt(document.getElementById('inp-draws').value) || 0,
-    phases: [...activePhases]
+    wins:      parseInt(document.getElementById('inp-wins').value)  || 0,
+    draws:     parseInt(document.getElementById('inp-draws').value) || 0,
+    phases:    [...activePhases],
+    topScorer: topScorerActive
   };
   render();
   closeModal();
@@ -223,6 +230,14 @@ document.addEventListener('click', function(e) {
   if (counterBtn) {
     e.stopPropagation();
     changeVal(counterBtn.dataset.target, parseInt(counterBtn.dataset.delta));
+    return;
+  }
+  const topscorerBtn = e.target.closest('#topscorer-btn');
+  if (topscorerBtn) {
+    e.stopPropagation();
+    topScorerActive = !topScorerActive;
+    topscorerBtn.classList.toggle('active', topScorerActive);
+    updatePreview();
     return;
   }
   const bonusBtn = e.target.closest('.bonus-btn');
@@ -482,6 +497,101 @@ function toggleAccordion(player) {
   arrow.classList.toggle('open');
 }
 
+function toggleCaptainAccordion(player) {
+  const body  = document.getElementById(player + '-captain-body');
+  const arrow = document.getElementById(player + '-captain-arrow');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+// ─── CAPITANO / CAPOCANNONIERE ───────────────────────────
+const CAPTAINS = {
+  chiara: { name: 'Erling Haaland', team: 'Norway', teamLabel: 'Norvegia' },
+  mannu:  { name: 'Kylian Mbappé', team: 'France', teamLabel: 'Francia' }
+};
+
+let scorersCache = [];
+
+async function loadScorers() {
+  try {
+    const r    = await fetch(API + '?action=scorers', { redirect: 'follow' });
+    const data = JSON.parse(await r.text());
+    scorersCache = (data && data.scorers) ? data.scorers : [];
+  } catch (e) {
+    console.error('loadScorers failed:', e);
+    scorersCache = [];
+  }
+  renderCaptainBody('chiara');
+  renderCaptainBody('mannu');
+}
+
+function topScorersGoals() {
+  if (!scorersCache.length) return 0;
+  return Math.max(...scorersCache.map(s => s.goals));
+}
+
+function renderCaptainBody(player) {
+  const body = document.getElementById(player + '-captain-body');
+  if (!body) return;
+
+  const captain  = CAPTAINS[player];
+  const teams    = PLAYER_TEAMS[player];
+  const maxGoals = topScorersGoals();
+
+  const myScorer  = scorersCache.find(s => s.name === captain.name);
+  const myGoals   = myScorer ? myScorer.goals : 0;
+  const isLeading = maxGoals > 0 && myGoals === maxGoals;
+
+  // classifica marcatori solo delle squadre del giocatore
+  const myTeamScorers = scorersCache
+    .filter(s => teams.some(t => matchesTeamFE(t, s.team)))
+    .sort((a, b) => b.goals - a.goals)
+    .slice(0, 8);
+
+  const scorersHtml = myTeamScorers.length
+    ? myTeamScorers.map(s => {
+        const isGold = maxGoals > 0 && s.goals === maxGoals;
+        const tm = teamMeta(s.team);
+        return `
+          <div class="scorer-row ${isGold ? 'gold' : ''}">
+            <span class="scorer-name">${s.name}</span>
+            <span class="scorer-team">${tm.flag} ${tm.tla}</span>
+            <span class="scorer-goals">${s.goals}</span>
+          </div>`;
+      }).join('')
+    : '<div class="match-empty">Nessun marcatore ancora</div>';
+
+  body.innerHTML = `
+    <div class="captain-card ${isLeading ? 'on-target' : ''}">
+      <span class="captain-icon">🎖️</span>
+      <div class="captain-info">
+        <div class="captain-name">${captain.name}</div>
+        <div class="captain-team">${captain.teamLabel} · ${myGoals} gol</div>
+      </div>
+      <span class="captain-badge ${isLeading ? 'gold' : 'normal'}">
+        ${isLeading ? 'IN TARGET +10' : 'in corsa'}
+      </span>
+    </div>
+    <div class="scorers-title">Classifica cannonieri (tue squadre)</div>
+    ${scorersHtml}
+  `;
+}
+
+// mostra/nasconde il bottone bonus capocannoniere nel modal,
+// solo per Norvegia (Chiara) e Francia (Mannu)
+function maybeShowTopScorerBonus(player, nationName) {
+  const row = document.getElementById('topscorer-bonus-row');
+  const btn = document.getElementById('topscorer-btn');
+  if (!row || !btn) return;
+
+  const eligible =
+    (player === 'chiara' && nationName === 'Norvegia') ||
+    (player === 'mannu'  && nationName === 'Francia');
+
+  row.style.display = eligible ? 'block' : 'none';
+}
+
+
 const ALL_TEAMS = [...PLAYER_TEAMS.chiara, ...PLAYER_TEAMS.mannu];
 
 async function loadMatches() {
@@ -509,7 +619,11 @@ async function loadMatches() {
 }
 
 // ─── INIT ────────────────────────────────────────────────
-loadState();
+loadState().then(() => {
+  loadScorers();
+});
 loadMatches();
 // aggiorna partite ogni 60 secondi
 setInterval(loadMatches, 60000);
+// aggiorna marcatori ogni 5 minuti
+setInterval(loadScorers, 300000);
